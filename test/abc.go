@@ -1,8 +1,8 @@
 package main
 
 import (
-	"./util"
 	"fmt"
+	"github.com/henly2/hello-go/test/util"
 )
 
 /*
@@ -19,19 +19,20 @@ import (
 
 func main() {
 	//获取行情数据地址
-	path := "src/github.com/henly2/hello-go/test/cfg1/cfg1.json"
+	// TODO: how to get run directory
+	rundir := "src/github.com/henly2/hello-go/test/"
+	path := rundir + "cfg1/cfg1.json"
+
 	//返回读取到的内容data接收
-
 	data, err := util.ReadFile(path)
-
 	if err != nil {
 		fmt.Println("err=", err)
 		return
 	}
-	//fmt.Println("返回读取到的值：",string(data))
 
 	//得到拼接好的行情路径
 	file_path := util.Req(data)
+
 	//通过拼接的地址进行获取数据
 	util.Http_data(file_path)
 

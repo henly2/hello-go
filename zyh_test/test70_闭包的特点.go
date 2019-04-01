@@ -16,5 +16,4 @@ func main() {
 	fmt.Println(f())
 	fmt.Println(f())
 	fmt.Println(f())
-
 }

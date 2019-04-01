@@ -22,8 +22,10 @@ func main() {
 
 		case string:
 			fmt.Println(key, data)
+
 		case float64:
 			fmt.Println(key, data)
+
 		case interface{}:
 			fmt.Println(key, value)
 

@@ -5,12 +5,14 @@ import (
 	"io/ioutil"
 	"net/http"
 )
-const  (
+
+const (
 	AA = 0
 )
+
 type (
 	Reader interface {
-		Read()(string, error)
+		Read() (string, error)
 	}
 
 	LocalFile struct {
@@ -20,7 +22,8 @@ type (
 		Url string
 	}
 )
-func (tmp *LocalFile) Read()(string, error) {
+
+func (tmp *LocalFile) Read() (string, error) {
 	b, err := ioutil.ReadFile(tmp.Path)
 	if err != nil {
 		return "", err
@@ -29,7 +32,7 @@ func (tmp *LocalFile) Read()(string, error) {
 	return string(b), nil
 }
 
-func (tmp *RemoteFile) Read()(string, error) {
+func (tmp *RemoteFile) Read() (string, error) {
 	resp, err := http.Get(tmp.Url)
 	if err != nil {
 		return "", err
@@ -45,9 +48,9 @@ func (tmp *RemoteFile) Read()(string, error) {
 
 func BuildReader(mode int, param string) (Reader, error) {
 	if mode == 1 {
-		return &LocalFile{Path:param}, nil
+		return &LocalFile{Path: param}, nil
 	} else if mode == 2 {
-		return &RemoteFile{Url:param}, nil
+		return &RemoteFile{Url: param}, nil
 	}
 
 	return nil, fmt.Errorf("not support mode = %d", mode)
@@ -55,25 +58,26 @@ func BuildReader(mode int, param string) (Reader, error) {
 
 type Person04 struct {
 	name string
-	sex byte
-	age int
+	sex  byte
+	age  int
 }
 
-func (tmp *Person04) PrintInfo()  {
-	fmt.Println(tmp.name,tmp.sex,tmp.age)
+func (tmp *Person04) PrintInfo() {
+	fmt.Println(tmp.name, tmp.sex, tmp.age)
 }
-func PrintInfo(tmp *Person04)  {
-	fmt.Println(tmp.name,tmp.sex,tmp.age)
+func PrintInfo(tmp *Person04) {
+	fmt.Println(tmp.name, tmp.sex, tmp.age)
 }
+
 type Student01 struct {
 	Person04
 
-	id int
+	id   int
 	addr string
 }
 
-func main()  {
-	a:= Person04{"ls", 'm', 6}
+func main() {
+	a := Person04{"ls", 'm', 6}
 	a.PrintInfo()
 
 	PrintInfo(&a)
@@ -81,7 +85,7 @@ func main()  {
 	ff := PrintInfo
 	ff(&a)
 
-	p:= Student01{a,666,"aaa"}
+	p := Student01{a, 666, "aaa"}
 	p.PrintInfo()
 
 	var c Reader
@@ -92,6 +96,5 @@ func main()  {
 		return
 	}
 	fmt.Println(c.Read())
-
 
 }
