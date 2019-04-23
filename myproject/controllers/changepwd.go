@@ -54,8 +54,8 @@ func (this *ChangepwdController) Changepwd() (t *jwt.Token) {
 		o := orm.NewOrm()
 		user := models.Userorm{}
 		user.Id = id
-		user.Username = chpwd.Name
-		err2 := o.Read(&user, "username")
+		//user.Username =chpwd.Name
+		err2 := o.Read(&user, "id")
 		if err2 == nil {
 			if user.Password == chpwd.OldPassword {
 				user.Password = chpwd.NewPassword
