@@ -8,6 +8,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	//"github.com/myproject/model_r"
 	"github.com/myproject/models"
+	"fmt"
 )
 
 type Chpwd struct {
@@ -26,8 +27,21 @@ func (this *ChangepwdController)Changepwd()(t *jwt.Token)  {
 	token, err := jwt.Parse(res_info, func(token *jwt.Token) (interface{}, error) {
 
 		this.Ctx.WriteString("token解密成功")
-		//claims, _ := token.Claims.(jwt.MapClaims)
+		claims, ok := token.Claims.(*jwt.MapClaims)
+		if !ok {
+			return "", fmt.Errorf("error data")
+		}
+		userId, exist := (*claims)["userid"]
+		if !exist {
+			return "", fmt.Errorf("error data, not has userid")
+		}
+
+		id, ok := userId.(int64)
+		if !ok {
+			return "", fmt.Errorf("error data, id is not int64")
+		}
 		//var user
+		fmt.Println("userId=", id)
 
 		data := this.Ctx.Input.RequestBody
 			//	//json数据封装到user对象中
