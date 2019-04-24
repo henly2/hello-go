@@ -51,6 +51,7 @@ func RegistInfo(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, "注册失败")
 		return
+
 	}
 	c.JSON(http.StatusOK, "注册成功")
 
