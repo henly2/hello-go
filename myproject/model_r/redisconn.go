@@ -1,11 +1,12 @@
 package model_r
 
 import (
-"fmt"
+	"fmt"
 	"github.com/go-redis/redis"
 )
-var G_c *redis.Client//redis数据库的连接
-func init(){
+
+var G_c *redis.Client //redis数据库的连接
+func init() {
 	client := redis.NewClient(&redis.Options{
 		Addr:     "127.0.0.1:6379",
 		Password: "", // no password set
@@ -14,6 +15,6 @@ func init(){
 
 	pong, err := client.Ping().Result()
 	fmt.Println(pong, err)
-	G_c=client
+	G_c = client
 
 }

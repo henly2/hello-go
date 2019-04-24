@@ -17,4 +17,3 @@ func (c *MainController) Post() {
 
 	c.Ctx.WriteString("THIS IS A METHOD POST")
 }
-

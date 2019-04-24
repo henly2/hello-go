@@ -9,7 +9,7 @@ package main
 
 火币行情: https://api.huobi.pro/market/detail/merged?symbol=btcusdt
 文档地址: https://huobiapi.github.io/docs/v1/cn
- */
-func main()  {
-	
+*/
+func main() {
+
 }

@@ -11,11 +11,11 @@ type TestmodelController struct {
 	beego.Controller
 }
 
-func (c *TestmodelController)Get()  {
-	o:=orm.NewOrm()
-	user:=models.Userorm{}
-	user.Username="s"
-	user.Password="s"
+func (c *TestmodelController) Get() {
+	o := orm.NewOrm()
+	user := models.Userorm{}
+	user.Username = "s"
+	user.Password = "s"
 	_, err := o.Insert(&user)
 	if err != nil {
 		fmt.Println("插入失败")
