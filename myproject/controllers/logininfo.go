@@ -7,7 +7,7 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/myproject/models"
+	"github.com/henly2/hello-go/myproject/models"
 	"net/http"
 	"strconv"
 	"time"

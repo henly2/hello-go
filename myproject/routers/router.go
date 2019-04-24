@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"github.com/myproject/controllers"
+	"github.com/henly2/hello-go/myproject/controllers"
 	"github.com/astaxie/beego"
 )
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	_ "github.com/myproject/routers"
+	_ "github.com/henly2/hello-go/myproject/routers"
 	"github.com/astaxie/beego"
 )
 
