@@ -11,43 +11,22 @@ import (
 	"time"
 )
 
-type UserInfo struct {
-	Username string `json:"username"`
-	Age      int    `json:"age"`
-	Sex      string `json:"sex"`
-	Password string `json:"password"`
-}
-
-var users UserInfo
-
-const (
-	SecretKey = "welcome to wangshubo's blog"
-)
-
-type User1 struct {
-	Name     string `form:"name" json:"name" binding:"required"`
-	Password string `form:"password" json:"password" bdinding:"required"`
-	//Age      int    `form:"age" json:"age"`
-}
-
-var user1 User1
-
-type ChangePwd struct {
-	Id          int    `json:"id"`
-	Name        string `json:"name"`
-	OldPassword string `json:"oldpassword"`
-	NewPassword string `json:"newpassword"`
-}
-
-var chpwd ChangePwd
-
+//用户注册
 func RegistInfo(c *gin.Context) {
+	type UserInfo struct {
+		Username string `json:"username"`
+		Age      int    `json:"age"`
+		Sex      string `json:"sex"`
+		Password string `json:"password"`
+	}
+	var users UserInfo
+
 	buf := make([]byte, 1024)
 	n, _ := c.Request.Body.Read(buf)
 	fmt.Println(string(buf[0:n]))
-	err1 := json.Unmarshal(buf[0:n], &users)
-	if err1 != nil {
-		fmt.Println("json.Unmarshal is err:", err1.Error())
+	err := json.Unmarshal(buf[0:n], &users)
+	if err != nil {
+		return
 	}
 	//把注册信息加入到数据库
 	o := orm.NewOrm()
@@ -56,7 +35,7 @@ func RegistInfo(c *gin.Context) {
 	user.Password = users.Password
 	user.Sex = users.Sex
 	user.Age = users.Age
-	_, err := o.Insert(&user)
+	_, err = o.Insert(&user)
 	if err != nil {
 		fmt.Println("注册失败")
 		return
@@ -64,25 +43,38 @@ func RegistInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, "注册成功")
 
 }
+
+//登录
 func LoginInfo(c *gin.Context) {
+	const (
+		SecretKey = "hello world"
+	)
+
+	type User struct {
+		Name     string `form:"name" json:"name" binding:"required"`
+		Password string `form:"password" json:"password" bdinding:"required"`
+	}
+	var users User
+
 	buf := make([]byte, 1024)
 	n, _ := c.Request.Body.Read(buf)
 	fmt.Println(string(buf[0:n]))
-	err1 := json.Unmarshal(buf[0:n], &user1)
-	if err1 != nil {
-		fmt.Println("json.Unmarshal is err:", err1.Error())
+	err := json.Unmarshal(buf[0:n], &users)
+	if err != nil {
+		fmt.Println("json.Unmarshal is err:", err.Error())
+		return
 	}
 	//从数据库查询数据，
 	//查询所有的数据
 	o := orm.NewOrm()
 	user := models.Userorm{}
-	user.Username = user1.Name
-	err := o.Read(&user, "username")
+	user.Username = users.Name
+	err = o.Read(&user, "username")
 	if err != nil {
 		c.JSON(http.StatusOK, "登陆成功")
 		return
 	} else {
-		if user.Username == user1.Name && user.Password == user1.Password {
+		if user.Username == users.Name && user.Password == users.Password {
 
 			//登陆成功生成token
 			claims := make(jwt.MapClaims)
@@ -90,40 +82,35 @@ func LoginInfo(c *gin.Context) {
 			claims["exp"] = time.Now().Add(time.Hour * 48).Unix() //设置过期时间，过期需要重新获取
 			claims["iat"] = time.Now().Unix()
 			token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-			//token.Claims = claims
-
-			tokenString, err2 := token.SignedString([]byte(SecretKey)) //使用自定义字符串进行加密
-
-			if err2 != nil {
+			tokenString, err := token.SignedString([]byte(SecretKey)) //使用自定义字符串进行加密
+			if err != nil {
 				c.JSON(http.StatusOK, "加密失败")
 				return
 			}
-			//if err != nil {
-			//	c.JSON(http.StatusOK, strconv.Itoa(http.StatusInternalServerError))
-			//	//fatal(err)
-			//	//http.Error(this.Ctx.ResponseWriter, "Server is Wrong", http.StatusInternalServerError)
-			//	return
-			//}
 
-			fmt.Println("Token:", tokenString)
 			c.Writer.Header().Set("token", tokenString)
 			c.JSON(http.StatusOK, "登录成功")
-			//this.Ctx.WriteString("登录成功")
 			c.JSON(http.StatusOK, tokenString)
-			//this.Ctx.WriteString(fmt.Sprintf("{\"Token\":\"%s\"}", tokenString))
-			//log.Println("aaaaa")
 			return
 		} else {
 			c.JSON(http.StatusOK, "登录失败")
 			return
 		}
 	}
-
 }
-func Changepwd(c *gin.Context) {
+
+//修改密码
+func ChangePwd(c *gin.Context) {
+	type ChangePwd struct {
+		Id          int    `json:"id"`
+		Name        string `json:"name"`
+		OldPassword string `json:"oldpassword"`
+		NewPassword string `json:"newpassword"`
+	}
+	var chpwd ChangePwd
+
 	res_info := c.Request.Header.Get("token")
 	_, err := jwt.Parse(res_info, func(token *jwt.Token) (interface{}, error) {
-
 		c.JSON(http.StatusOK, token)
 		//claims, ok := token.Claims.(*jwt.MapClaims)
 		//if !ok {
@@ -144,22 +131,23 @@ func Changepwd(c *gin.Context) {
 		buf := make([]byte, 1024)
 		n, _ := c.Request.Body.Read(buf)
 		fmt.Println(string(buf[0:n]))
-		err1 := json.Unmarshal(buf[0:n], &chpwd)
-		if err1 != nil {
-			fmt.Println("json.Unmarshal is err:", err1.Error())
+		err := json.Unmarshal(buf[0:n], &chpwd)
+		if err != nil {
+			fmt.Println("json.Unmarshal is err:", err.Error())
+			return "", err
 		}
 		o := orm.NewOrm()
 		user := models.Userorm{}
 		//user.Id = id
 		user.Username = chpwd.Name
-		err2 := o.Read(&user, "username")
-		if err2 == nil {
+		err = o.Read(&user, "username")
+		if err == nil {
 			if user.Password == chpwd.OldPassword {
 				user.Password = chpwd.NewPassword
-				_, err2 = o.Update(&user)
-				if err2 != nil {
+				_, err = o.Update(&user)
+				if err != nil {
 					c.JSON(http.StatusOK, "更新失败")
-					return "", err2
+					return "", err
 				}
 				c.JSON(http.StatusOK, "更新成功")
 			} else {
@@ -168,10 +156,8 @@ func Changepwd(c *gin.Context) {
 		}
 		return []byte("SecretKey"), nil
 	})
-
 	if err != nil {
 		return
 	}
-	return
 
 }
