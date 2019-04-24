@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
-	"github.com/myproject1/models"
+	"github.com/henly2/hello-go/myproject/models"
 )
 
 type RegistController struct {

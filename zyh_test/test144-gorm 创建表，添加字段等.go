@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -19,7 +18,8 @@ type User struct {
 	CreditCard CreditCard // One-To-One (拥有一个 - CreditCard表的UserID作外键)
 	Emails     []Email    // One-To-Many (拥有多个 - Email表的UserID作外键)
 
-	BillingAddress Address // One-To-One (属于 - 本表的BillingAddressID作外键)
+	BillingAddress   Address // One-To-One (属于 - 本表的BillingAddressID作外键)
+	BillingAddressID sql.NullInt64
 
 	ShippingAddress   Address // One-To-One (属于 - 本表的ShippingAddressID作外键)
 	ShippingAddressID int
@@ -85,33 +85,12 @@ func main() {
 
 	db.Model(&User{}).ModifyColumn("age", "test") //修改age的数据类型为test
 
-	user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()} //添加数据
+	user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
 
 	db.NewRecord(user) // => 主键为空返回`true`
 
 	db.Create(&user)
 
 	db.NewRecord(user)
-	//fmt.Println(db.Find(&user))
-
-	//查询所有的数据
-	var users []User
-	db.Find(&users)
-	db.Where("name = ?", "jinz").Find(&users)
-
-	//fmt.Println(users)
-	//// query one
-	//user1 := new(User)
-	//db.First(user1,1)
-	//fmt.Println(user1)
-	//
-	//
-	////更新数据
-	//user2:=&User{Name:"Jinzhu"}
-	//db.Model(user2).Update("Name","ls")
-	//
-	////删除数据
-	//user3 := &User{Name:"Jinzh"}
-	//db.Delete(user3)
 
 }

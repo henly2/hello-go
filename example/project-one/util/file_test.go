@@ -20,7 +20,7 @@ func TestSaveReadData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if data != dataRead{
+	if data != dataRead {
 		t.Fatal(data, "!=", dataRead)
 	}
 
@@ -44,7 +44,7 @@ func TestSaveReadData(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if s.A != sRead.A || s.B != sRead.B{
+	if s.A != sRead.A || s.B != sRead.B {
 		t.Fatal(s, "!=", sRead)
 	}
 
