@@ -30,6 +30,6 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(tmp)
+	fmt.Println(tmp.Company)
 
 }

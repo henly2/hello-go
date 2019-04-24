@@ -6,9 +6,9 @@ import (
 	"github.com/astaxie/beego"
 	"github.com/astaxie/beego/orm"
 	"github.com/dgrijalva/jwt-go"
-	//"github.com/myproject/model_r"
+	//"github.com/myproject1/model_r"
 	"fmt"
-	"github.com/myproject/models"
+	"github.com/myproject1/models"
 )
 
 type Chpwd struct {

@@ -23,5 +23,5 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(xm) //输出{xiaoming 18 {Hunan ChangSha}}
+	fmt.Println(xm.Name) //输出{xiaoming 18 {Hunan ChangSha}}
 }

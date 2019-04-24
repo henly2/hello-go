@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -10,28 +11,27 @@ import (
 
 type User struct {
 	gorm.Model
-	Birthday     time.Time
-	Age          int
-	Name         string  `gorm:"size:255"`       // string默认长度为255, 使用这种tag重设。
-	Num          int     `gorm:"AUTO_INCREMENT"` // 自增
+	Birthday time.Time
+	Age      int
+	Name     string `gorm:"size:255"`       // string默认长度为255, 使用这种tag重设。
+	Num      int    `gorm:"AUTO_INCREMENT"` // 自增
 
-	CreditCard        CreditCard      // One-To-One (拥有一个 - CreditCard表的UserID作外键)
-	Emails            []Email         // One-To-Many (拥有多个 - Email表的UserID作外键)
+	CreditCard CreditCard // One-To-One (拥有一个 - CreditCard表的UserID作外键)
+	Emails     []Email    // One-To-Many (拥有多个 - Email表的UserID作外键)
 
-	BillingAddress    Address         // One-To-One (属于 - 本表的BillingAddressID作外键)
-	BillingAddressID  sql.NullInt64
+	BillingAddress Address // One-To-One (属于 - 本表的BillingAddressID作外键)
 
-	ShippingAddress   Address         // One-To-One (属于 - 本表的ShippingAddressID作外键)
+	ShippingAddress   Address // One-To-One (属于 - 本表的ShippingAddressID作外键)
 	ShippingAddressID int
 
-	IgnoreMe          int `gorm:"-"`   // 忽略这个字段
-	Languages         []Language `gorm:"many2many:user_languages;"` // Many-To-Many , 'user_languages'是连接表
+	IgnoreMe  int        `gorm:"-"`                         // 忽略这个字段
+	Languages []Language `gorm:"many2many:user_languages;"` // Many-To-Many , 'user_languages'是连接表
 }
 
 type Email struct {
-	ID      int
-	UserID  int     `gorm:"index"` // 外键 (属于), tag `index`是为该列创建索引
-	Email   string  `gorm:"type:varchar(100);unique_index"` // `type`设置sql类型, `unique_index` 为该列设置唯一索引
+	ID         int
+	UserID     int    `gorm:"index"`                          // 外键 (属于), tag `index`是为该列创建索引
+	Email      string `gorm:"type:varchar(100);unique_index"` // `type`设置sql类型, `unique_index` 为该列设置唯一索引
 	Subscribed bool
 }
 
@@ -50,26 +50,29 @@ type Language struct {
 
 type CreditCard struct {
 	gorm.Model
-	UserID  uint
-	Number  string
+	UserID uint
+	Number string
 }
+
 // 重设列名
 type Animal struct {
-	AnimalId    int64     `gorm:"column:beast_id"`         // 设置列名为`beast_id`
-	Birthday    time.Time `gorm:"column:day_of_the_beast"` // 设置列名为`day_of_the_beast`
-	Age         int64     `gorm:"column:age_of_the_beast"` // 设置列名为`age_of_the_beast`
+	AnimalId int64     `gorm:"column:beast_id"`         // 设置列名为`beast_id`
+	Birthday time.Time `gorm:"column:day_of_the_beast"` // 设置列名为`day_of_the_beast`
+	Age      int64     `gorm:"column:age_of_the_beast"` // 设置列名为`age_of_the_beast`
 }
 type Teacher0 struct {
 	gorm.Model
 	Name string
-	Age int
+	Age  int
 }
+
 //设置主键
 type Animal0 struct {
 	AnimalId int64 `gorm:"primary_key"` // 设置AnimalId为主键
 	Name     string
 	Age      int64
 }
+
 func main() {
 
 	db, err := gorm.Open("mysql", "root:mysql@/golang05?charset=utf8&parseTime=True&loc=Local")
@@ -77,17 +80,38 @@ func main() {
 	if err != nil {
 		fmt.Println("err=", err)
 	}
-	db.CreateTable(&User{})  //创建表
+	db.CreateTable(&User{})     //创建表
 	db.CreateTable(&Teacher0{}) //创建表
 
-	db.Model(&User{}).ModifyColumn("age", "test")//修改age的数据类型为test
+	db.Model(&User{}).ModifyColumn("age", "test") //修改age的数据类型为test
 
-	user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()}
+	user := User{Name: "Jinzhu", Age: 18, Birthday: time.Now()} //添加数据
 
 	db.NewRecord(user) // => 主键为空返回`true`
 
 	db.Create(&user)
 
 	db.NewRecord(user)
+	//fmt.Println(db.Find(&user))
+
+	//查询所有的数据
+	var users []User
+	db.Find(&users)
+	db.Where("name = ?", "jinz").Find(&users)
+
+	//fmt.Println(users)
+	//// query one
+	//user1 := new(User)
+	//db.First(user1,1)
+	//fmt.Println(user1)
+	//
+	//
+	////更新数据
+	//user2:=&User{Name:"Jinzhu"}
+	//db.Model(user2).Update("Name","ls")
+	//
+	////删除数据
+	//user3 := &User{Name:"Jinzh"}
+	//db.Delete(user3)
 
 }
