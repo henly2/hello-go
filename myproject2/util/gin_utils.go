@@ -1,8 +1,6 @@
 package util
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/astaxie/beego/orm"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -11,21 +9,35 @@ import (
 	"time"
 )
 
+type UserInfo struct {
+	Username string `json:"username"`
+	Age      int    `json:"age"`
+	Sex      string `json:"sex"`
+	Password string `json:"password"`
+}
+
+const (
+	SecretKey = "hello world"
+)
+
+type User struct {
+	Name     string `form:"name" json:"name" binding:"required"`
+	Password string `form:"password" json:"password" bdinding:"required"`
+}
+type Changepwd struct {
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	OldPassword string `json:"oldpassword"`
+	NewPassword string `json:"newpassword"`
+}
+
 //用户注册
 func RegistInfo(c *gin.Context) {
-	type UserInfo struct {
-		Username string `json:"username"`
-		Age      int    `json:"age"`
-		Sex      string `json:"sex"`
-		Password string `json:"password"`
-	}
-	var users UserInfo
 
-	buf := make([]byte, 1024)
-	n, _ := c.Request.Body.Read(buf)
-	fmt.Println(string(buf[0:n]))
-	err := json.Unmarshal(buf[0:n], &users)
+	var users UserInfo
+	err := c.BindJSON(&users)
 	if err != nil {
+		c.JSON(http.StatusOK, "错误数据")
 		return
 	}
 	//把注册信息加入到数据库
@@ -37,7 +49,7 @@ func RegistInfo(c *gin.Context) {
 	user.Age = users.Age
 	_, err = o.Insert(&user)
 	if err != nil {
-		fmt.Println("注册失败")
+		c.JSON(http.StatusOK, "注册失败")
 		return
 	}
 	c.JSON(http.StatusOK, "注册成功")
@@ -46,22 +58,11 @@ func RegistInfo(c *gin.Context) {
 
 //登录
 func LoginInfo(c *gin.Context) {
-	const (
-		SecretKey = "hello world"
-	)
 
-	type User struct {
-		Name     string `form:"name" json:"name" binding:"required"`
-		Password string `form:"password" json:"password" bdinding:"required"`
-	}
 	var users User
-
-	buf := make([]byte, 1024)
-	n, _ := c.Request.Body.Read(buf)
-	fmt.Println(string(buf[0:n]))
-	err := json.Unmarshal(buf[0:n], &users)
+	err := c.BindJSON(&users)
 	if err != nil {
-		fmt.Println("json.Unmarshal is err:", err.Error())
+		c.JSON(http.StatusOK, "错误数据")
 		return
 	}
 	//从数据库查询数据，
@@ -71,7 +72,7 @@ func LoginInfo(c *gin.Context) {
 	user.Username = users.Name
 	err = o.Read(&user, "username")
 	if err != nil {
-		c.JSON(http.StatusOK, "登陆成功")
+		c.JSON(http.StatusOK, "登陆失败")
 		return
 	} else {
 		if user.Username == users.Name && user.Password == users.Password {
@@ -90,7 +91,6 @@ func LoginInfo(c *gin.Context) {
 
 			c.Writer.Header().Set("token", tokenString)
 			c.JSON(http.StatusOK, "登录成功")
-			c.JSON(http.StatusOK, tokenString)
 			return
 		} else {
 			c.JSON(http.StatusOK, "登录失败")
@@ -101,13 +101,7 @@ func LoginInfo(c *gin.Context) {
 
 //修改密码
 func ChangePwd(c *gin.Context) {
-	type ChangePwd struct {
-		Id          int    `json:"id"`
-		Name        string `json:"name"`
-		OldPassword string `json:"oldpassword"`
-		NewPassword string `json:"newpassword"`
-	}
-	var chpwd ChangePwd
+	var chpwd Changepwd
 
 	res_info := c.Request.Header.Get("token")
 	_, err := jwt.Parse(res_info, func(token *jwt.Token) (interface{}, error) {
@@ -128,12 +122,9 @@ func ChangePwd(c *gin.Context) {
 		////var user
 		//fmt.Println("userId=", id)
 
-		buf := make([]byte, 1024)
-		n, _ := c.Request.Body.Read(buf)
-		fmt.Println(string(buf[0:n]))
-		err := json.Unmarshal(buf[0:n], &chpwd)
+		err := c.BindJSON(&chpwd)
 		if err != nil {
-			fmt.Println("json.Unmarshal is err:", err.Error())
+			c.JSON(http.StatusOK, "错误数据")
 			return "", err
 		}
 		o := orm.NewOrm()
@@ -157,6 +148,7 @@ func ChangePwd(c *gin.Context) {
 		return []byte("SecretKey"), nil
 	})
 	if err != nil {
+		c.JSON(http.StatusOK, "错误数据")
 		return
 	}
 
