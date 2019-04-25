@@ -10,6 +10,5 @@ func main() {
 	router.POST("/regist", util.RegistInfo)
 	router.POST("/login", util.LoginInfo)
 	router.POST("/changepwd", util.ChangePwd)
-
 	router.Run(":8080")
 }
