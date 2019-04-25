@@ -90,7 +90,7 @@ func LoginInfo(c *gin.Context) {
 				return
 			}
 
-			c.Writer.Header().Set("token", tokenString)
+			c.Header("token", tokenString)
 			c.JSON(http.StatusOK, "登录成功")
 			return
 		} else {
@@ -125,12 +125,13 @@ func ChangePwd(c *gin.Context) {
 
 		err := c.BindJSON(&chpwd)
 		if err != nil {
-			c.JSON(http.StatusOK, "错误数据")
+			c.JSON(http.StatusOK, err.Error())
 			return "", err
 		}
 		o := orm.NewOrm()
 		user := models.Userorm{}
 		//user.Id = id
+
 		user.Username = chpwd.Name
 		err = o.Read(&user, "username")
 		if err == nil {
@@ -149,7 +150,7 @@ func ChangePwd(c *gin.Context) {
 		return []byte("SecretKey"), nil
 	})
 	if err != nil {
-		c.JSON(http.StatusOK, "错误数据")
+		c.JSON(http.StatusOK, err.Error())
 		return
 	}
 
