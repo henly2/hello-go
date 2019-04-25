@@ -131,7 +131,6 @@ func ChangePwd(c *gin.Context) {
 		o := orm.NewOrm()
 		user := models.Userorm{}
 		//user.Id = id
-
 		user.Username = chpwd.Name
 		err = o.Read(&user, "username")
 		if err == nil {
@@ -147,7 +146,7 @@ func ChangePwd(c *gin.Context) {
 				c.JSON(http.StatusOK, "更新失败")
 			}
 		}
-		return []byte("SecretKey"), nil
+		return []byte(SecretKey), nil
 	})
 	if err != nil {
 		c.JSON(http.StatusOK, err.Error())
