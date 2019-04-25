@@ -4,12 +4,17 @@ import (
 	"github.com/astaxie/beego/orm"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"github.com/henly2/hello-go/myproject2/common"
 	"github.com/henly2/hello-go/myproject2/models"
+	"log"
 	"net/http"
 	"time"
-	"github.com/henly2/hello-go/myproject2/common"
-	"log"
 )
+
+type AppClaims struct {
+	UserId int `json:"uid"`
+	jwt.StandardClaims
+}
 
 //用户注册
 func UserRegist(c *gin.Context) {
@@ -96,11 +101,10 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 
-	//登陆成功生成token
-	claims := make(jwt.MapClaims)
-	claims["userid"] = user.Id
-	claims["exp"] = time.Now().Add(time.Hour * 48).Unix() //设置过期时间，过期需要重新获取
-	claims["iat"] = time.Now().Unix()
+	claims := AppClaims{}
+	claims.UserId = user.Id
+	claims.ExpiresAt = time.Now().Add(time.Hour * 48).Unix() //设置过期时间，过期需要重新获取
+	claims.IssuedAt = time.Now().Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString([]byte(common.SecretKey)) //使用自定义字符串进行加密
 	if err != nil {
@@ -118,6 +122,7 @@ func UserLogin(c *gin.Context) {
 	// 将用户数据返回给用户，但是需要将敏感信息过滤
 	user.Password = "******"
 	response.Result = user
+	c.JSON(http.StatusOK, "登录成功")
 	c.JSON(http.StatusOK, response)
 }
 
@@ -153,7 +158,7 @@ func UserChangePassword(c *gin.Context) {
 		return
 	}
 
-	claims, ok := token.Claims.(*jwt.MapClaims)
+	claims, ok := token.Claims.(*AppClaims)
 	if !ok {
 		log.Println("not *jwt.MapClaims")
 
@@ -162,31 +167,21 @@ func UserChangePassword(c *gin.Context) {
 		c.JSON(http.StatusOK, response)
 		return
 	}
-	userId, exist := (*claims)["userid"]
-	if !exist {
-		log.Println("no key userid")
 
+	userId := claims.UserId
+	if userId == 0 {
+		log.Println("userid == 0")
 		response.Err = common.ErrCode_IllegalErr
 		response.ErrMsg = "非法数据"
 		c.JSON(http.StatusOK, response)
 		return
 	}
 
-	id, ok := userId.(int)
-	if !ok {
-		log.Println("userid is not int")
-
-		response.Err = common.ErrCode_IllegalErr
-		response.ErrMsg = "非法数据"
-		c.JSON(http.StatusOK, response)
-		return
-	}
-
-	log.Println("token-userId=", id)
+	log.Println("token-userId=", userId)
 
 	o := orm.NewOrm()
 	user := models.Userorm{}
-	user.Id = id
+	user.Id = userId
 	user.Username = request.Name
 	err = o.Read(&user, "username")
 	if err != nil {
