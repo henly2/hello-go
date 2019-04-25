@@ -153,7 +153,7 @@ func UserChangePassword(c *gin.Context) {
 	}
 
 	res_info := c.GetHeader("token")
-	token, err := jwt.Parse(res_info, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(res_info, &AppClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(common.SecretKey), nil
 	})
 	if err != nil {
