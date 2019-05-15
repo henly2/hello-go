@@ -6,7 +6,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type Useradmin struct {
+type Admingrom struct {
 	Root       string `json:"root"`
 	Id         int    `json:"id"`
 	Username   string `json:"username"`
@@ -24,6 +24,6 @@ func init() {
 	if err != nil {
 		fmt.Println("err=", err)
 	}
-	newdb.CreateTable(&Useradmin{}) //创建表
+	newdb.CreateTable(&Admingrom{}) //创建表
 	DB = newdb
 }

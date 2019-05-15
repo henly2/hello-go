@@ -16,7 +16,6 @@ import (
 
 type AppClaims struct {
 	UserId int `json:"uid"`
-
 	jwt.StandardClaims
 }
 
@@ -28,8 +27,7 @@ var (
 
 //普通用户注册
 func UserRegist(c *gin.Context) {
-	timeUnix := time.Now().Unix() //已知的时间戳
-
+	timeUnix := time.Now().Unix()                                         //已知的时间戳
 	formatTimeStr := time.Unix(timeUnix, 0).Format("2006-01-02 15:04:05") //获取当前时间
 
 	// 解析数据
@@ -51,12 +49,10 @@ func UserRegist(c *gin.Context) {
 	has := md5.Sum(data)
 	md5str1 := fmt.Sprintf("%x", has) //将[]byte转成16进制
 	user.Password = md5str1
-	fmt.Println(md5str1)
-
 	user.Sex = request.Sex
 	user.Age = request.Age
 	user.Registtime = formatTimeStr
-
+	// 查询用户
 	userId, err := o.Insert(&user)
 	if err != nil {
 		log4.LOGGER("Test").Info("失败,错误是%s", err.Error())
@@ -65,7 +61,6 @@ func UserRegist(c *gin.Context) {
 		c.JSON(http.StatusOK, response)
 		return
 	}
-
 	log.Println("注册成功，userid=", userId)
 
 	// 将新生成的userid返回给用户
@@ -77,7 +72,6 @@ func UserRegist(c *gin.Context) {
 //管理员注册
 func AdminRegist(c *gin.Context) {
 	timeUnix := time.Now().Unix() //已知的时间戳
-
 	formatTimeStr := time.Unix(timeUnix, 0).Format("2006-01-02 15:04:05")
 
 	// 解析数据
@@ -94,7 +88,7 @@ func AdminRegist(c *gin.Context) {
 	data := []byte(adminrequest.Adminpassword)
 	has := md5.Sum(data)
 	md5str1 := fmt.Sprintf("%x", has) //将[]byte转成16进制
-	users := &models_a.Useradmin{Root: "adminroot", Username: adminrequest.Adminname, Password: md5str1, Sex: adminrequest.Adminsex, Age: adminrequest.Adminage, Registtime: formatTimeStr}
+	users := &models_a.Admingrom{Root: "adminroot", Username: adminrequest.Adminname, Password: md5str1, Sex: adminrequest.Adminsex, Age: adminrequest.Adminage, Registtime: formatTimeStr}
 	models_a.Db.Create(users)
 
 	log.Println("注册成功，userid=", users.Id)
@@ -105,7 +99,7 @@ func AdminRegist(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-//登录
+//普通用户登录
 func UserLogin(c *gin.Context) {
 	var (
 		response Response
@@ -140,6 +134,11 @@ func UserLogin(c *gin.Context) {
 		c.JSON(http.StatusOK, response)
 		return
 	}
+	data := []byte(request.Password)
+	has := md5.Sum(data)
+	md5str1 := fmt.Sprintf("%x", has) //将[]byte转成16进制
+	request.Password = md5str1
+	fmt.Println(request)
 
 	if user.Password != request.Password {
 		response.Err = common_a.ErrCode_PasswordErr
@@ -185,8 +184,87 @@ func UserLogin(c *gin.Context) {
 
 }
 
-//查询用户
-func QueryUser(c *gin.Context) {
+//管理员登录
+func AdminLogin(c *gin.Context) {
+	var (
+		response Response
+
+		request models_a.Admin
+	)
+
+	timeUnix := time.Now().Unix()                                         //已知的时间戳
+	formatTimeStr := time.Unix(timeUnix, 0).Format("2006-01-02 15:04:05") //当前登录时间
+
+	// 解析数据
+	err := c.BindJSON(&request)
+	if err != nil {
+		log.Println("BindJSON err=", err.Error())
+		response.Err = common_a.ErrCode_DataErr
+		response.ErrMsg = "错误数据格式不对"
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	user := models_a.Admingrom{}
+	if models_a.DB.Find(&user) == nil {
+		log.Println("Read err=", err.Error())
+
+		response.Err = common_a.ErrCode_UserNotExist
+		response.ErrMsg = "用户不存在"
+		c.JSON(http.StatusOK, response)
+		return
+	}
+	user.Username = request.Name
+	data := []byte(request.Password)
+	has := md5.Sum(data)
+	md5str1 := fmt.Sprintf("%x", has) //将[]byte转成16进制
+	request.Password = md5str1
+
+	if user.Password != request.Password {
+		response.Err = common_a.ErrCode_PasswordErr
+		response.ErrMsg = "密码错误"
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	claims := AppClaims{}
+	claims.UserId = user.Id
+	claims.ExpiresAt = time.Now().Add(time.Hour * 48).Unix() //设置过期时间，过期需要重新获取
+	claims.IssuedAt = time.Now().Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(common_a.SecretKey)) //使用自定义字符串进行加密
+	if err != nil {
+		log.Println("SignedString err=", err.Error())
+
+		response.Err = common_a.ErrCode_InternalErr
+		response.ErrMsg = "服务内部错误"
+		c.JSON(http.StatusOK, response)
+		return
+	}
+
+	log4.LoadConfiguration("./logininfo.json")
+	log4.LOGGER("Test").Info("%s Login successful", user.Username)
+
+	// 设置token
+	c.Header("token", tokenString)
+	// 将用户数据返回给用户，但是需要将敏感信息过滤
+	user.Password = "******"
+	response.Result = user
+	c.JSON(http.StatusOK, response)
+
+	//把注册信息加入到数据库
+	users := &models_a.Userlog{Username: user.Username, Userlogintime: formatTimeStr}
+	models_a.Db.Create(users)
+	//models_a.Db.Create(models_a.Userlog{Username:user.Username,Userlogintime:formatTimeStr})
+
+	log.Println("保存成功，userid=%", user.Id)
+	//// 将新生成的userid返回给用户
+	response.Result = users
+	c.JSON(http.StatusOK, response)
+}
+
+//查询普通用户登录状态
+func QueryAdmin(c *gin.Context) {
 	var (
 		response Response
 		request  models_a.InforMation
@@ -258,7 +336,7 @@ func QueryUser(c *gin.Context) {
 }
 
 //查询用户登录日志
-func LogUserLogin(c *gin.Context) {
+func LogAdminLogin(c *gin.Context) {
 	var (
 		response Response
 		request  models_a.Loginlog

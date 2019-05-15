@@ -9,10 +9,18 @@ import (
 func main() {
 	log4.LoadConfiguration("./logininfo.json")
 	router := gin.Default()
-	router.POST("/user/userregist", controller_a.UserRegist)   //普通用户注册
-	router.POST("/user/adminregist", controller_a.AdminRegist) //管理员注册
-	router.POST("/user/login", controller_a.UserLogin)         //普通用户登录
-	router.POST("/admin/listusers", controller_a.QueryUser)
-	router.POST("/admin/loguserlogin", controller_a.LogUserLogin)
+	v1 := router.Group("admin")
+	{
+		v1.POST("/regist", controller_a.AdminRegist)
+		v1.POST("/login", controller_a.AdminLogin)
+		v1.POST("/loguserlogin", controller_a.LogAdminLogin)
+	}
+	v2 := router.Group("user")
+	{
+		v2.POST("/regist", controller_a.UserRegist)
+		v2.POST("/login", controller_a.UserLogin)
+		v2.POST("/listusers", controller_a.QueryAdmin)
+	}
+
 	router.Run(":8080")
 }
