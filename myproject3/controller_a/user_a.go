@@ -206,7 +206,8 @@ func AdminLogin(c *gin.Context) {
 	}
 
 	user := models_a.Admingrom{}
-	if models_a.DB.Find(&user) == nil {
+	err = models_a.DB.Model(models_a.Admingrom{}).Where("username = ?", request.Name).Find(&user).Error
+	if err != nil {
 		log.Println("Read err=", err.Error())
 
 		response.Err = common_a.ErrCode_UserNotExist
@@ -214,6 +215,14 @@ func AdminLogin(c *gin.Context) {
 		c.JSON(http.StatusOK, response)
 		return
 	}
+	//if models_a.DB.Find(&user) == nil {
+	//	log.Println("Read err=", err.Error())
+	//
+	//	response.Err = common_a.ErrCode_UserNotExist
+	//	response.ErrMsg = "用户不存在"
+	//	c.JSON(http.StatusOK, response)
+	//	return
+	//}
 	user.Username = request.Name
 	data := []byte(request.Password)
 	has := md5.Sum(data)
